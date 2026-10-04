@@ -11,4 +11,5 @@ sleep(ms)
 print(...)
 printInline(...)
 printf(fmt, ...)
+userinput(fdin, helpstr, replacestr, fdout)
 ```

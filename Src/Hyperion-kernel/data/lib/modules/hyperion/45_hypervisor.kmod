@@ -108,7 +108,7 @@ function sys.spawn(func, name, envars, args, tgid, clearFds)
 end
 
 function sys.execspawn(path, name, envars, args, tgid, keepFds)
-    local func, euid, suid_active = loadExecutable(path, kernel._U)
+    local func, euid, suid_active = loadExecutable(path)
 
     local caller   = kernel.currentTask
     local real_uid = caller and caller.uid or kernel.uid
@@ -124,16 +124,19 @@ function sys.execspawn(path, name, envars, args, tgid, keepFds)
     return createTask(func, name or path, envars, args, tgid, real_uid, euid, not keepFds)
 end
 
-function sys.exec(path, args, envars)
+function sys.exec(path, args, envars, clearFds)
     local task          = kernel.currentTask
-    local func, euid, _ = loadExecutable(path, kernel._U)
+    local func, euid, _ = loadExecutable(path)
 
     -- no idea why this is here?
-    --if task.fd then
-    --    for fd, _ in pairs(task.fd) do
-    --        if fd > 2 then pcall(kernel.vfs.close, fd) end
-    --    end
-    --end
+    -- Figured it out it is to close fds on su
+    if clearFds then
+        if task.fd then
+            for fd, _ in pairs(task.fd) do
+                if fd > 2 then pcall(kernel.vfs.close, fd) end
+            end
+        end
+    end
 
     task.euid   = euid
     task.args   = args or {}

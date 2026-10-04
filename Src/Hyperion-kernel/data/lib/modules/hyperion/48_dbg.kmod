@@ -1,7 +1,7 @@
 --:Minify:--
 local kernel=...
-local debug=debug
+kernel.debug=debug
 kernel._G.debug={
-    getinfo=debug.getinfo,
-    traceback=debug.traceback
+    getinfo=kernel.debug.getinfo,
+    traceback=kernel.debug.traceback
 }

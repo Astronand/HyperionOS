@@ -494,7 +494,7 @@ local ok, err = xpcall(function()
             h.close()
         end,
         firmware=apis,
-        reboot=false,
+        status="running",
         beep=function() end
     }
 
@@ -505,7 +505,7 @@ local ok, err = xpcall(function()
 
     local kernelCoro = coroutine.create(function()
         --pf
-        ---@diagnostic disable-next-line: param-type-mismatch-
+        ---@diagnostic disable-next-line: param-type-mismatch
         local ok, err = xpcall(Kernel, debug.traceback, EFI)
         if not ok then
             error(err)
@@ -569,14 +569,18 @@ local ok, err = xpcall(function()
             end
         end
         if status == "error" or coroutine.status(kernelCoro) == "dead" then
-            if EFI.reboot then
+            if EFI.status=="reboot" then
                 apis.os.reboot()
+            elseif EFI.status=="shutdown" then
+                apis.os.shutdown()
             end
             displaySuperBadError("Kernel error: " .. tostring(err))
             coroutine.yield("key")
         elseif status == "success" then
-            if EFI.reboot then
+            if EFI.status=="reboot" then
                 apis.os.reboot()
+            elseif EFI.status=="shutdown" then
+                apis.os.shutdown()
             end
             displaySuperBadError("Kernel error: Attempted to yield main thread\n"..debug.traceback(kernelCoro, "Attempted to yield main thread"))
             coroutine.yield("key")

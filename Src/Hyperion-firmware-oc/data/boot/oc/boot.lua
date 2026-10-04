@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: undefined-global
 local cp,c=component,computer;local b_addr=c.getBootAddress();local b_fs=cp.proxy(b_addr)
 local gpu=cp.list("gpu")() and cp.proxy(cp.list("gpu")())
 local e_rom=cp.list("eeprom")() and cp.proxy(cp.list("eeprom")())

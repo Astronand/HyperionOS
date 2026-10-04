@@ -35,6 +35,14 @@ function kernel.main()
         local totalTaskTime = 0
         local taskTimes    = {}
 
+        for id,hook in ipairs(kernel.mainHooks) do
+            local ok,err = xpcall(hook, debug.traceback)
+            if not ok then
+                kernel.log("[MAIN HOOK ERR]: "..err, "ERROR", 0xFF0000)
+                kernel.mainHooks[id]=nil
+            end
+        end
+
         for pid, task in pairs(kernel.tasks) do
             if kernel.exitMain then break end
 
@@ -42,7 +50,7 @@ function kernel.main()
                 for id,hook in ipairs(list) do
                     local ok,err = xpcall(hook, debug.traceback, task, pid)
                     if not ok then
-                        kernel.log("[MAIN HOOK ERR]: "..err, "ERROR", 0xFF0000)
+                        kernel.log("[TASK HOOK ERR]: "..err, "ERROR", 0xFF0000)
                         list[id]=nil
                     end
                 end
@@ -148,4 +156,6 @@ function kernel.main()
             kernel.saveLog()
         end
     end
+    kernel.log("Exited main")
+    kernel.saveLog()
 end

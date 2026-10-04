@@ -58,7 +58,7 @@ syscall.setEnviron("HOME",  homedir)
 syscall.setEnviron("USER",  username)
 syscall.setEnviron("SHELL", shell)
 
-local ok, err = pcall(syscall.exec, shell)
+local ok, err = pcall(syscall.exec, shell, nil, true)
 if not ok then
     print("su: cannot exec shell '" .. shell .. "': " .. tostring(err))
     syscall.exit(1)

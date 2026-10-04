@@ -2,6 +2,16 @@
 --- @diagnostic disable: duplicate-set-field
 local kernel = ...
 kernel.allowGlobalOverwrites = true
+local oldtype = type
+local oldgetmetatable = getmetatable
+
+function math.round(x)
+    if x>=0 then
+        return math.floor(x+0.5)
+    else
+        return math.ceil(x-0.5)
+    end
+end
 
 function string.hasSuffix(str, suffix)
     return string.sub(str, #suffix + 1) == suffix
@@ -70,6 +80,10 @@ function table.hasVal(tabl, query)
     return false
 end
 
+function table.readOnly(tabl, typ)
+    return setmetatable({},{__index=tabl,__newindex=function()error("Table is read-only")end,__usermeta=false,__type=typ})
+end
+
 local function serialize(tbl, seen)
     seen = seen or {}
 
@@ -100,6 +114,8 @@ local function serialize(tbl, seen)
             output = output .. "\"" .. tostring(v) .. "\""
         elseif type(v) == "thread" then
             output = output .. "\"" .. tostring(v) .. "\""
+        elseif oldgetmetatable(v) and oldgetmetatable(v).__tostring then
+            output = output .. tostring(v)
         else
             error("serialization of type \"" .. type(v) .. "\" is not supported")
         end
@@ -111,8 +127,6 @@ local function serialize(tbl, seen)
     return output
 end
 
-local oldtype = type
-local oldgetmetatable = getmetatable
 function type(object, trueType)
     if trueType then return oldtype(object) end
     if oldtype(object) ~= "table" then
@@ -131,7 +145,7 @@ end
 function getmetatable(object)
     if oldtype(object) ~= "table" then return end
     if oldtype(oldgetmetatable(object)) == "table" then
-        if oldgetmetatable(object).__isuserdata then
+        if oldgetmetatable(object).__usermeta then
             if oldtype(oldgetmetatable(object).__usermeta) == "function" then
                 return oldgetmetatable(object).__usermeta()
             else
@@ -251,8 +265,6 @@ local function makeSyscallProxy()
     local backing = {}
     return setmetatable(backing, {
         __index = function(self, name)
-            local raw = rawget(self, name)
-            if raw ~= nil then return raw end
             return function(...)
                 local res = table.pack(coroutine.yield("syscall", name, ...))
                 if res[1] then
@@ -263,7 +275,7 @@ local function makeSyscallProxy()
             end
         end,
         __newindex = function(self, k, v)
-            rawset(self, k, v)
+            error("Table is read-only")
         end,
         __metatable=false
     })
@@ -271,6 +283,5 @@ end
 
 syscall = makeSyscallProxy()
 
-_makeSyscallProxy = makeSyscallProxy
-
 table.serialize = serialize
+

@@ -74,7 +74,7 @@ function kernel.PANIC(msg)
             break
         end
     end
-    EFI.reboot=true
+    EFI.status="reboot"
     error("KERNEL PANIC")
 end
 kernel.panic=kernel.PANIC
@@ -179,7 +179,6 @@ if not root then
         if event[1]=="keyTyped" then
             if tonumber(event[3]) then
                 if canadates[tonumber(event[3])] then
-                    ifs.writeAllText("/boot/fstab", "U "..canadates[tonumber(event[3])]..";/\n"..fstab)
                     fstab="U "..canadates[tonumber(event[3])]..";/\n"..fstab
                     ifs.mount(canadates[tonumber(event[3])], "/")
                     break
@@ -359,7 +358,7 @@ kernel.perTaskHooks={}
 kernel.mainHooks={}
 kernel.runhooks={}
 
--- args {taskobj}
+-- args {taskobj, pid}
 function kernel.execPerTask(func, prior)
     if not kernel.perTaskHooks[prior] then kernel.perTaskHooks[prior]={} end
     kernel.perTaskHooks[prior][#kernel.perTaskHooks[prior]+1] = func
@@ -460,6 +459,7 @@ kernel.syscalls["saveLog"]=function()
     end
 end
 
+ifs.writeAllText("/boot/fstab", fstab)
 kernel.saveLog()
 kernel.log("Running modules")
 for _,p in ipairs(modules) do
@@ -471,7 +471,7 @@ for _,p in ipairs(modules) do
             if not code then
                 kernel.panic("Failed to read module "..v)
             end
-            local func,err=load(code,"@"..v)
+            local func,err=load(code,"@"..v,"t",_G)
             if not func then kernel.panic("ModuLoadErr: "..tostring(err)) end
             local status, err = xpcall(func,debug.traceback, kernel)
             if not status then kernel.panic("ModuRunErr: "..tostring(err)) end
@@ -502,10 +502,13 @@ if kernel.status=="panic" then
     kernel.panic(kernel.reason)
 end
 if kernel.status=="reboot" then
-    EFI.reboot=true
+    EFI.status="reboot"
     return true
 elseif kernel.status=="halt" then
     kernel.log("System halted.")
     kernel.saveLog()
     while true do end
+else
+    EFI.status="shutdown"
+    return true
 end

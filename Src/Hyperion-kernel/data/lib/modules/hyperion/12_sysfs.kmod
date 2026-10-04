@@ -1,0 +1,82 @@
+--:Minify:--
+local kernel = ...
+
+local proxy = {}
+local data = {}
+
+proxy.address = "devfs0000"
+proxy.isvirt = true
+proxy.isReadOnly = function() return false end
+proxy.spaceUsed = function() return 0 end
+proxy.spaceTotal = function() return 0 end
+proxy.makeDirectory = function() error("EACCES") end
+proxy.remove = function() error("EACCES") end
+proxy.setLabel = function() error("EACCES") end
+proxy.getLabel = function() return "devfs" end
+proxy.attributes = function(path) return {
+    size = 0,
+    modified = 0,
+    created = 0
+} end
+
+function proxy:open(path, mode)
+    local steps = kernel.vfs.splitPath(path)
+    local step = data
+    for i=1, #steps-1 do
+        local dat = step[steps[i]]
+        if type(dat) ~= "table" then error("ENFILE") end
+        step=dat
+    end
+    if type(step[steps[#steps]]) == "function" then
+        return step[steps[#steps]]("open", mode)
+    end
+    error("ENFILE")
+end
+
+function proxy:type(path, mode)
+    local steps = kernel.vfs.splitPath(path)
+    local step = data
+    if #steps == 0 then
+        return "directory"
+    end
+    for i=1, #steps-1 do
+        local dat = step[steps[i]]
+        if type(dat) ~= "table" then error("ENFILE") end
+        step=dat
+    end
+    if type(step[steps[#steps]]) == "function" then
+        return step[steps[#steps]]("type", mode)
+    end
+    if type(step[steps[#steps]]) == "table" then
+        return "directory"
+    end
+    error("ENOENT")
+end
+
+function proxy:list(path)
+    local steps = kernel.vfs.splitPath(path)
+    local step = data
+    if #steps == 0 then
+        return table.keys(data)
+    end
+    for i=1, #steps-1 do
+        local dat = step[steps[i]]
+        if type(dat) ~= "table" then error("ENOENT") end
+        step=dat
+    end
+    if type(step[steps[#steps]]) == "table" then
+        return table.keys(step[steps[#steps]])
+    end
+    error("ENOENT")
+end
+
+function proxy:fileExists(path)
+    local ok = pcall(function()
+        return self:type(path)
+    end)
+    return ok
+end
+
+kernel.sysfs={}
+kernel.sysfs.proxy=proxy
+kernel.disks["sysfs0000"]=proxy

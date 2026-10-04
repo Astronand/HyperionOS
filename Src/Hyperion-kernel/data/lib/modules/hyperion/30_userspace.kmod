@@ -58,10 +58,12 @@ kernel._U.load = function(a,b,c,d) return origLoad(a,b,c,d or kernel._U) end
 
 function kernel.freshUserEnv()
     local locals = {}
-    locals.syscall = _makeSyscallProxy()
 
     local env = setmetatable(locals, {
         __index    = kernel._U,
+        __pairs    = function(self)
+            return pairs(kernel._U)
+        end,
         __newindex = function(_, k, v) rawset(locals, k, v) end,
         __metatable=false
     })

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Usage:
-    python build.py <target> [--arch cct|oc] [--release|--dev]
+    python build.py <target> [--arch cct|oc|ac] [--release|--dev]
 
 Targets:
     build
@@ -17,6 +17,7 @@ Targets:
 Arch flags:
     --arch cct
     --arch oc
+    --arch ac
 
 Release flags:
     --release
@@ -41,6 +42,7 @@ PROD_ROOT    = PROJECT_ROOT / "prod"
 ARCH_BOOT_DIR = {
     "cct": Path("boot") / "cct",
     "oc":  Path("boot") / "oc",
+    "ac": Path("boot") / "ac"
 }
 
 
@@ -146,6 +148,7 @@ def install_bootloader(arch: str, release: bool):
     eeprom    = boot_dir / "eeprom"
 
     eeprom_dst_name = "startup.lua" if release else "eeprom"
+    eeprom_dst_name = "uefi.lua" if arch=="ac" else eeprom_dst_name
     print(f"  Installing: eeprom -> Build/{eeprom_dst_name}")
     shutil.copy2(eeprom, BUILD_ROOT / eeprom_dst_name)
 
@@ -236,7 +239,7 @@ def inject_makeusers(users, arch):
 def main():
     parser = argparse.ArgumentParser(description="HyperionOS build script")
     parser.add_argument("target", choices=["build", "build-mini", "build-micro", "build-test", "build-mini-test", "build-micro-test", "clean", "prod", "prod-mini"])
-    parser.add_argument("--arch", choices=["cct", "oc"], default=None,
+    parser.add_argument("--arch", choices=["cct", "oc", "ac"], default=None,
                         help="Target architecture")
     parser.add_argument("--release", dest="release", action="store_true", default=True,
                         help="Release build: eeprom placed as startup.lua (default)")

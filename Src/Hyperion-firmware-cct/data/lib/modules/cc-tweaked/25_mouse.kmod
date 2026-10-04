@@ -1,0 +1,25 @@
+--:Minify:--
+local kernel=...
+local fifo=kernel.newFifo()
+kernel.devfs.data["input"]["mouse1"] = function(op, mode)
+    if op=="type" then
+        return "Mouse"
+    elseif op=="open" then
+        local h = {
+            read=function(amount)
+                local rv=""
+                for i=1, amount or 1 do
+                    local event = {fifo.pop()}
+                    if event[1] then
+                        rv=rv..event[1]
+                    end
+                end
+                ---@diagnostic disable-next-line: cast-local-type
+                if rv=="" then rv=nil end
+                return rv
+            end
+        }
+        return h
+    end
+end
+kernel.cct.mouse={fifo=fifo}
