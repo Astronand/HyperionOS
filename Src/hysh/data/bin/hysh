@@ -6,6 +6,7 @@ syscall.open("/dev/tty/1","w") --stdout (Device 1)
 syscall.open("/dev/null","w")  --stderr (device 2)
 
 local fs = require("fs")
+local gfx = syscall.devctl(1,"gfx")
 
 syscall.devctl(1,"clear")
 syscall.devctl(1,"sfgc",0xFFFFFF)
@@ -242,6 +243,7 @@ builtinCmds.clear = function()
     syscall.devctl(1,"clear")
     syscall.devctl(1,"sfgc",0xFFFFFF)
     syscall.devctl(1,"spos",1,1)
+    if gfx then local w,h=gfx.size() gfx.box(0,0,w+5,h+5,0,true) end
 end
 
 builtinCmds.whoami = function()
@@ -820,10 +822,11 @@ builtinCmds.df = function(...)
     end
     local function fmt(n) return opts.h and hfmt(n) or tostring(n) end
     print(string.format("%-20s %10s %10s %10s %6s %-s","Filesystem","Size","Used","Avail","Use%","Mounted on"))
-    local mounts = {{"$","/"}, {"devfs0000","/dev/"}, {"tmpfs0000","/tmp/"}}
-    for _, m in ipairs(mounts) do
-        local id, mp = m[1], m[2]
-        print(string.format("%-20s %10s %10s %10s %6s %-s", id, "?", "?", "?", "?%", mp))
+    local fsinfo = syscall.fsinfo()
+    for id, obj in pairs(fsinfo.disks) do
+        local use = ((obj.size/obj.used)-1)*100
+        local avail = obj.size-obj.used
+        print(string.format("%-20s %10s %10s %10s %6s %-s", id, tostring(obj.size), tostring(obj.used), avail, tostring(use).."%", fsinfo.mounts[id] or ""))
     end
 end
 
@@ -1218,12 +1221,14 @@ local function runCommand(command)
     while true do
         local exited, code = syscall.collect(proc)
         if exited then
+            if gfx then gfx.setMode(false) end
             if code then print("\nTask exited with code:\n"..tostring(code)) end
             return
         end
         if terminate then
             local ok2 = syscall.kill(proc, true)
             if ok2 then
+                if gfx then gfx.setMode(false) end
                 syscall.devctl(1,"sbgc",16); syscall.devctl(1,"sfgc",0xFF0000)
                 print("\nProgram Terminated."); syscall.devctl(1,"sfgc",0xFFFFFF)
             end

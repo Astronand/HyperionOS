@@ -37,7 +37,7 @@ kernel.execPerTask(function(task)
         if task.sigq and #task.sigq ~= 0 and task.sigh then
             local coro = coroutine.create(task.sigh)
             local status,err=coroutine.resume(coro, table.remove(task.sigq, 1))
-            EFI:yeild()
+            kernel.EFI:yield()
             if status=="error" or status==false then
                 task.sigd.error=err or "Unknown"
                 task.sigd.active=false

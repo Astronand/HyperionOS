@@ -33,7 +33,7 @@ local function createVt(id, width, height)
         end
     end
 
-    function vt.obj:write(content)
+    function vt.obj.write(content)
         local x, y = vt.cursorX, vt.cursorY
         if x>vt.width then return end
         if y>vt.height then return end
@@ -79,36 +79,36 @@ local function createVt(id, width, height)
         vt.cursorX, vt.cursorY = x, y
     end
 
-    function vt.obj:spos(x, y)
+    function vt.obj.spos(x, y)
         vt.cursorX = tonumber(x)
         vt.cursorY = tonumber(y)
     end
 
-    function vt.obj:gpos()
-        return tostring(vt.cursorX)..";"..tostring(vt.cursorY)
+    function vt.obj.gpos()
+        return vt.cursorX, vt.cursorY
     end
 
-    function vt.obj:sfgc(color)
+    function vt.obj.sfgc(color)
         vt.fgColor = tonumber(color)
     end
 
-    function vt.obj:sbgc(color)
+    function vt.obj.sbgc(color)
         vt.bgColor = tonumber(color)
     end
 
-    function vt.obj:gfgc()
+    function vt.obj.gfgc()
         return vt.fgColor
     end
 
-    function vt.obj:gbgc()
+    function vt.obj.gbgc()
         return vt.bgColor
     end
 
-    function vt.obj:gplt()
+    function vt.obj.gplt()
         return 24
     end
 
-    function vt.obj:clear()
+    function vt.obj.clear()
         for y = 1, vt.height do
             for x = 1, vt.width do
                 vt.buffer[y][x] = {char = " ", fgColor = vt.fgColor, bgColor = vt.bgColor}
@@ -117,12 +117,12 @@ local function createVt(id, width, height)
         vt.cursorX, vt.cursorY = 1, 1
     end
 
-    function vt.obj:isvirt()
+    function vt.obj.isvirt()
         return true
     end
 
-    function vt.obj:gctrl()
-        return serializeBool(vt.ctrl)..";"..serializeBool(vt.alt)
+    function vt.obj.gfx()
+        
     end
 
     return vt

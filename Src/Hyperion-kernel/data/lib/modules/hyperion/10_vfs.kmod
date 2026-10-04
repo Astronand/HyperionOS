@@ -299,6 +299,7 @@ local function namei(path, noFollow, symDepth)
                     if not target or target == "" then
                         error("ENOENT: empty symlink target")
                     end
+                    if kernel.config.logSymlinkTraverse then kernel.log(curPath .. " > " .. target) end
 
                     local symIsAbs, symTokens = tokenizePath(target)
 
@@ -1158,7 +1159,27 @@ function vfs.devlst(fd)
     return table.keys(kernel.currentTask.fd[fd].handle)
 end
 
+function vfs.getOpenFds()
+    local out={}
+    for i,v in ipairs(kernel.currentTask.fd) do
+        out[i]=v.path
+    end
+    return out
+end
+
+function vfs.fsinfo()
+    local out={mounts={},disks={}}
+    for i,v in pairs(vfs.mounts) do
+        out.mounts[i]=v
+    end
+    for i,v in pairs(vfs.disks) do
+        out.disks[i]={size=vfs.disks[i].spaceTotal(),used=vfs.disks[i].spaceUsed(),label=vfs.disks[i].getLabel(),readOnly=vfs.disks[i].isReadOnly(),isVirt=vfs.disks[i].isvirt,address=vfs.disks[i].addressz}
+    end
+    return out
+end
+
 vfs.resolveMount = resolveMount
+vfs.updateMeta   = updateMeta
 
 local sys = kernel.syscalls
 sys["open"]      = vfs.open
@@ -1198,5 +1219,7 @@ sys["fget_suid"] = function(fd)
     local fobj = kernel.currentTask and kernel.currentTask.fd[fd]
     return fobj and fobj.suid_owner or nil
 end
+sys["getOpenFds"]= vfs.getOpenFds
+sys["fsinfo"]    = vfs.fsinfo
 
 kernel.log("VFS module loaded")

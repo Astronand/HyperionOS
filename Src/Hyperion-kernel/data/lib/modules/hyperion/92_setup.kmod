@@ -1,7 +1,10 @@
 --:Minify:--
 local kernel = ...
 
-if kernel.firstBoot then
+if kernel.firstBoot or kernel.config.resetPerms then
+    if kernel.config.resetPerms then
+        kernel.log("resetPerms is active, disable it in /boot/boot.cfg", "WARN", 0xFFFF00)
+    end
     kernel.log("Seeding filesystem permissions...")
 
     local P    = kernel.vfs.P
@@ -18,20 +21,23 @@ if kernel.firstBoot then
 
     local function seed(root, data)
         for i=1,#data do
-            local entry=data[1]
-            kernel.vfs.chmod(root..entry[1],entry[2],entry[3])
-            kernel.vfs.chown(root..entry[1],entry[4])
+            local entry=data[i]
+            if kernel.vfs.exists(root..entry[1]) then
+                kernel.vfs.updateMeta(root..entry[1],function(e)
+                    e.perms=entry[4]
+                    e.group=entry[3]
+                    e.owner=entry[2]
+                end)
+            end
         end
     end
 
     seed("/", {
         {"bin",    0, 0, RWX_RX_RX},
         {"boot",   0, 0, RWX_RX_RX},
-        {"dev",    0, 0, RWXRWXRWX},
         {"etc",    0, 0, RWX_RX_RX},
         {"home",   0, 0, RWX_RX_RX},
         {"lib",    0, 0, RWX_RX_RX},
-        {"proc",   0, 0, RWXRWXRWX},
         {"root",   0, 0, RW____   },
         {"sbin",   0, 0, RWX_RX_RX},
         {"tmp",    0, 0, RWXRWXRWX},

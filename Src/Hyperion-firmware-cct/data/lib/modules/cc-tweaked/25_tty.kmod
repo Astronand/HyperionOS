@@ -1,6 +1,8 @@
 --:Minify:--
 local kernel = ...
 local peripheral=kernel.cct.peripheral
+kernel.cct.gfx={}
+kernel.cct.term={}
 
 local colors = {
     [0xFFFFFF]=0x0001,
@@ -155,6 +157,7 @@ local function serializeBool(bool)
 end
 
 local function newtty(obj, id, ev)
+    kernel.cct.term[id]=obj
     obj.setPaletteColor(0x1,    0xFFFFFF) -- #000000
     obj.setPaletteColor(0x2,    0xFF0000) -- #FFFFFF
     obj.setPaletteColor(0x4,    0x00FF00) -- #FF0000
@@ -176,17 +179,6 @@ local function newtty(obj, id, ev)
             return "Terminal"
         elseif op=="open" then
             local h = {
-                read=function(amount)
-                    local rv=""
-                    for i=1, amount or 1 do
-                        local event = {ev()}
-                        if event[1] then
-                            rv=rv..event[1]
-                        end
-                    end
-                    if rv=="" then rv=nil end
-                    return rv
-                end,
                 write=function(content)
                     write(content, obj)
                 end,
@@ -221,18 +213,16 @@ local function newtty(obj, id, ev)
                     return false
                 end,
                 gplt=function()
-                    return plt
+                    return table.deepcopy(plt)
+                end,
+                gfx=function(...)
+                    if kernel.cct.gfx[id] then return kernel.cct.gfx[id] else return false end
+                end,
+                id=function()
+                    return id
                 end
             }
-            if mode=="rw" then
-                return h
-            elseif mode=="r" then
-                h["write"]=nil
-                return h
-            elseif mode=="w" then
-                h["read"]=nil
-                return h
-            end
+            return h
         end
     end
 end
@@ -259,23 +249,14 @@ kernel.devfs.data["input"]["keyboard1"] = function(op, mode)
                         rv=rv..event[1]
                     end
                 end
+                ---@diagnostic disable-next-line: cast-local-type
                 if rv=="" then rv=nil end
                 return rv
-            end,
-            write=function(content)
             end,
             gctrl=function()
                 return serializeBool(kernel.cct.ctrl)..";"..serializeBool(kernel.cct.alt)
             end
         }
-        if mode=="rw" then
-            return h
-        elseif mode=="r" then
-            h["write"]=nil
-            return h
-        elseif mode=="w" then
-            h["read"]=nil
-            return h
-        end
+        return h
     end
 end

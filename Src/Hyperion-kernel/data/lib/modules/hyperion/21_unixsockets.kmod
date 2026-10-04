@@ -2,3 +2,5 @@
 local kernel=...
 kernel.unixSockets={}
 local socket=kernel.socket
+
+--socket.registerProtocal()

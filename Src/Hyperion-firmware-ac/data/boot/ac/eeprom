@@ -1,68 +1,146 @@
-local init
-do
-  local component_invoke = component.invoke
-  local function boot_invoke(address, method, ...)
-    local result = table.pack(pcall(component_invoke, address, method, ...))
-    if not result[1] then
-      return nil, result[2]
-    else
-      return table.unpack(result, 2, result.n)
+local comp,disks,autocomplete,ev,ent,data,path,exit,dirty,ls,eb,sb,bp=components,{},false,nil,true,"","",false,true,{},false
+local c,gpu=comp:getFirst("computer"),comp:getFirst("gpu")
+if gpu then sb=gpu:newBuffer(48,32) end
+--c.nvram.data="1/ac/boot.lua"
+local function resetScreens()
+    sb=gpu:newBuffer(64,48)
+    for typ, obj in comp:list() do
+        if typ=="screen" then gpu:assignBuffer(sb,obj) end
     end
-  end
-
-  -- backwards compatibility, may remove later
-  local eeprom = component.list("eeprom")()
-  computer.getBootAddress = function()
-    return boot_invoke(eeprom, "getData")
-  end
-  computer.setBootAddress = function(address)
-    return boot_invoke(eeprom, "setData", address)
-  end
-
-  do
-    local screen = component.list("screen")()
-    local gpu = component.list("gpu")()
-    if gpu and screen then
-      boot_invoke(gpu, "bind", screen)
-    end
-  end
-  local function tryLoadFrom(address)
-    local handle, reason = boot_invoke(address, "open", "/oc/boot.lua")
-    if not handle then
-      return nil, reason
-    end
-    local buffer = ""
-    repeat
-      local data, reason = boot_invoke(address, "read", handle, math.maxinteger or math.huge)
-      if not data and reason then
-        return nil, reason
-      end
-      buffer = buffer .. (data or "")
-    until not data
-    boot_invoke(address, "close", handle)
-    return load(buffer, "=init")
-  end
-  local reason
-  if computer.getBootAddress() then
-    init, reason = tryLoadFrom(computer.getBootAddress())
-  end
-  if not init then
-    computer.setBootAddress()
-    for address in component.list("filesystem") do
-      init, reason = tryLoadFrom(address)
-      if init then
-        computer.setBootAddress(address)
-        break
-      end
-    end
-  end
-  if not init then
-    error("no bootable medium found" .. (reason and (": " .. tostring(reason)) or ""), 0)
-  end
 end
-local ok, err = xpcall(init,debug.traceback)
-if not ok then
-    error(err)
+resetScreens()
+
+local function displayError(err)
+    if not gpu then return end
+    gpu:freeAllBuffers()
+    resetScreens()
+    sb:pasteText(0,0,"FILL_SPILL",err)
+end
+
+local function bootloader()
+for typ, obj in comp:list() do
+    if typ~="massStorage" then goto skip end
+    disks[tostring(obj.diskId)]=obj
+    ::skip::
+end
+
+local function display(text)
+    print(text)
+    if not sb then print("NO_SB") return end
+    sb:pasteText(0,0,"FILL_SPILL",text)
+end
+
+local function boot()
+    local pos = path:find("/", 1, true)
+    if not pos then displayError("EINVAL") sleep(5) return end
+    local id,p = path:sub(1,pos-1),path:sub(pos)
+    if not disks[id] then displayError("ENODEV") sleep(5) return end
+    local init,err=load(disks[id]:open(p):read(-1),"@init","t",_G)
+    if err then displayError(err) sleep(5) return end
+    local ret = {xpcall(init, debug.traceback)}
+    if not ret[1] then
+        displayError("EFI PROGRAM ERROR: "..err)
+        sleep(5)
+        return false
+    else
+        if ret[2]=="ENTER_BIOS" then
+            c.nvram.ENTER_BIOS=true
+            return true
+        end
+        return table.unpack(ret, 2)
+    end
+end
+
+if c.nvram then
+    path=c.nvram.data or ""
+    eb=c.nvram.ENTER_BIOS
+    c.nvram.ENTER_BIOS=false
+end
+
+local function drainev()
+    repeat
+        ev={c:getMachineEvent()}
+        if ev[1]=="charTyped" then ent=false end
+    until not ev[1]
+end
+
+if path=="" or eb then drainev() ent=false else
+    display("Press key to enter boot menu...")
+    sleep(3)
+    drainev()
+    if ent then return boot() end
+end
+
+local function proc(key)
+    if key=="\n" then exit=true
+    elseif key=="\b" then path=path:sub(1,#path-1) dirty=true
+    elseif key=="\t" then print("autocomplete")
+    else path=path..key dirty=true end
+end
+
+local function get()
+    data=""
+    local pos = path:find("/", 1, true)
+    local trailingslash=false
+    if path:sub(#path)=="/" then trailingslash=true end
+    if not pos then
+        for id in pairs(disks) do
+            if id:sub(1,#path)==path then
+                data=data..id.."\n"
+            end
+        end
+    else
+        if not trailingslash then
+            local n=""
+            for i=#path, 0, -1 do
+                if path:sub(i,i)~="/" then
+                    n=path:sub(i,i)..n
+                else break end
+            end
+            local ok,ret=pcall(function()
+                return disks[path:sub(1,pos-1)]:list(path:sub(pos,#path-#n))
+            end)
+            if ok then
+                ls = ret
+            end
+            for _,p in ipairs(ls) do
+                if p:sub(1,#n) == n then
+                    data=data..p.."\n"
+                end
+            end
+        else
+            local ok,ret=pcall(function()
+                return disks[path:sub(1,pos-1)]:list(path:sub(pos))
+            end)
+
+            if ok then
+                ls=ret
+                for _,p in ipairs(ls) do
+                    data=data..p.."\n"
+                end
+            end
+        end
+    end
+end
+
+if not ent then
+    while true do
+        get()
+        if dirty then
+            for i=0,31 do sb:clearRow(i) end
+            display("Select boot file...\n"..path.."\n\n"..data)
+            dirty=false
+        end
+        ev={c:getMachineEvent()}
+        if ev[1]=="charTyped" then proc(ev[2]) end
+        if exit then return boot() end
+    end
+end
+end
+local ret={xpcall(bootloader,debug.traceback)}
+if not ret[1] then
+    displayError(ret[2])
+    error(ret[2])
 else
-    return err
+    return table.unpack(ret, 2)
 end

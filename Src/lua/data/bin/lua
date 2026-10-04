@@ -173,6 +173,8 @@ end
 
 local luaEnv = setmetatable({}, {__index = _ENV})
 luaEnv._G = luaEnv
+luaEnv._ENV = _ENV
+luaEnv._G = _G
 
 luaEnv.print = function(...)
     local n = select("#", ...)
@@ -259,9 +261,9 @@ local function getUserInput(prompt, history)
         local key = syscall.read(0)
         if key and key ~= "" then
             if     key == "[C" then
-                if cursor > 1 then cursor = cursor - 1; dirty = true end
+                if cursor > 1 then cursor = cursor + 1; dirty = true end
             elseif key == "[D" then
-                if cursor <= #input then cursor = cursor + 1; dirty = true end
+                if cursor <= #input then cursor = cursor - 1; dirty = true end
             elseif key == "[A" then
                 if history and histIdx < #history then
                     histIdx = histIdx + 1
@@ -298,9 +300,9 @@ local function getUserInput(prompt, history)
 end
 
 c(C_PROMPT); w("HyperionOS " .. _VERSION .. "\n")
-w("Type \"exit()\" to exit.")
+w("Interactive Lua REPL. Type \"exit()\" to exit.\n")
 c(C_NIL)
-w("Interactive Lua REPL. exit() to quit.\n\n")
+w("\n\n")
 c(1)
 
 local history = {}

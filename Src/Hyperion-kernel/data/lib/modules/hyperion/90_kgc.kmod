@@ -2,11 +2,11 @@
 local kernel = ...
 kernel.processes.kgc = function()
     while true do
-        for i,v in pairs(kernel.reqcache) do
-            if v.expires and kernel.EFI:getEpochMs() > v.expires then
-                kernel.reqcache[i] = nil
-            end
-        end
+        --for i,v in pairs(kernel.reqcache) do
+        --    if v.expires and kernel.EFI:getEpochMs() > v.expires then
+        --        kernel.reqcache[i] = nil
+        --    end
+        --end
         sleep(5)
     end
 end

@@ -71,8 +71,10 @@ kernel.processes.cctdaemon = function()
             elseif eventType == "mouse_scroll" then
                 if event[2] == 1 then
                     kernel.cct.fifo.push("[nS")
+                    kernel.cct.mouse.fifo.push("[nS")
                 else
                     kernel.cct.fifo.push("[nT")
+                    kernel.cct.mouse.fifo.push("[nT")
                 end
             elseif eventType == "http_success" then
                 if kernel.cct.httpqueue[event[2]] then
@@ -85,6 +87,16 @@ kernel.processes.cctdaemon = function()
                     kernel.cct.httperror[event[2]]=event[3]
                     kernel.cct.httpresponse[event[2]]=event[4]
                 end
+            elseif eventType == "mouse_click" then
+                --"[C;X;Y;C"
+                -- 1 = left
+                -- 2 = right
+                -- 3 = middle
+                kernel.cct.mouse.fifo.push("[C;"..tostring(event[3])..";"..tostring(event[4])..";"..tostring(event[2]))
+            elseif eventType == "mouse_drag" then
+                kernel.cct.mouse.fifo.push("[D;"..tostring(event[3])..";"..tostring(event[4])..";"..tostring(event[2]))
+            elseif eventType == "mouse_up" then
+                kernel.cct.mouse.fifo.push("[U;"..tostring(event[3])..";"..tostring(event[4])..";"..tostring(event[2]))
             else
                 if kernel.cct.eventhooks[eventType] then
                     local ok,err = xpcall(kernel.cct.eventhooks[eventType], debug.traceback, table.unpack(event))

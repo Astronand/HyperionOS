@@ -121,10 +121,7 @@ function kernel.main()
                     end
                 end
             end
-            if kernel.EFI:getEpochMs()>=nextyield then
-                kernel.EFI:yield()
-                nextyield=kernel.EFI:getEpochMs()+5000
-            end
+            kernel.EFI:yield()
         end
 
         local T_prev_avg = (N > 0) and (totalTaskTime / N) or 0

@@ -32,4 +32,13 @@ showModLoad<bool>
 
 tmpToDisk<bool>
     writes tmp to disk instead of ram
+
+logSymlinkTraverse<bool>
+    logs symlink traversal (can harm preformance)
+
+moreLogsaves<bool>
+    enables log debug save points (can harm preformance)
+
+logPathResolution<bool>
+    logs how a vfs path resolves to a disk path (can harm preformance)
 ```

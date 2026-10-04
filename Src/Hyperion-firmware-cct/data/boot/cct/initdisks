@@ -163,7 +163,7 @@ local function createDisk(id, basePath, readonly, periph)
     local disk = {address = id, isReadOnly = function() return readonly end}
 
     function disk:spaceUsed()
-        return fs.getCapacity(basePath) - fs.getFreeSpace(basePath)
+        return (fs.getCapacity(basePath) or 0) - (fs.getFreeSpace(basePath) or 0)
     end
 
     function disk:spaceTotal() return fs.getCapacity(basePath) end

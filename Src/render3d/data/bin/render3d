@@ -1,0 +1,124 @@
+local args={...}
+if #args<1 then print("Usage: render3d [file.obj]") end
+local fs=require("fs")
+local vec=require("vector")
+local gfx=syscall.devctl(1,"gfx")
+
+local file = fs.readAllText(args[1])
+
+local obj={v={},f={}}
+local lines=string.split(file, "\n")
+
+for i=1, #lines do
+    local line=lines[i]
+    if line:sub(1,2)=="v " then
+        line=line:sub(3)
+        local s=string.split(line, " ")
+        obj.v[#obj.v+1]=vec(tonumber(s[1]),tonumber(s[2]),tonumber(s[3]))
+    elseif line:sub(1,2)=="f " then
+        line=line:sub(3)
+        local s=string.split(line, " ")
+        local vs={}
+        for c=1, #s do
+            local v=string.split(s[c], "/")
+            vs[#vs+1]=tonumber(v[1])
+        end
+        obj.f[#obj.f+1]=vec(table.unpack(vs))
+    end
+end
+
+print("Vertices")
+for i=1, #obj.v do
+    print(obj.v[i])
+end
+
+print("Faces")
+for i=1, #obj.f do
+    print(obj.f[i])
+end
+
+local function projectPoint(point, cameraPos, cameraRot, fov, width, height)
+
+    local p=point-cameraPos
+
+    local pitch=cameraRot.x
+    local yaw=cameraRot.y
+
+    local cp=math.cos(pitch)
+    local sp=math.sin(pitch)
+
+    local cy=math.cos(yaw)
+    local sy=math.sin(yaw)
+
+    local right=vec(
+        cy,
+        0,
+        -sy
+    )
+
+    local up=vec(
+        sy*sp,
+        cp,
+        cy*sp
+    )
+
+    local forward=vec(
+        -sy*cp,
+        sp,
+        -cy*cp
+    )
+
+    local x=p:dot(right)
+    local y=p:dot(up)
+    local z=p:dot(forward)
+
+    if z<=0 then
+        return nil
+    end
+
+    local aspect=width/height
+    local f=1/math.tan(fov*0.5)
+
+    local sx=(x*f/aspect)/z
+    local sy=(y*f)/z
+
+    return vec(
+        (sx+1)*0.5*width,
+        (1-sy)*0.5*height
+    ),z
+
+end
+
+local proj={}
+local camera=vec(0,0,3)
+local rot=vec(0,0,0)
+local w,h=gfx.size()
+local fov=math.rad(90)
+for i=1, #obj.v do
+    proj[i]={}
+    proj[i].p,proj[i].z=projectPoint(obj.v[i],camera,rot,fov,w,h)
+end
+
+print("Projected")
+for i=1, #proj do
+    print(proj[i].p)
+end
+
+gfx.setMode(true)
+for i=#obj.f, 1, -1 do
+    local f=obj.f[i]
+    local c=math.random(0,0xffffff)
+    for p=1, #f do
+        if p~=#f then
+            print(tostring(proj[f[p]].p.x)..","..tostring(proj[f[p]].p.y).." > "..tostring(proj[f[p+1]].p.x)..","..tostring(proj[f[p+1]].p.y))
+            gfx.line(proj[f[p]].p.x,proj[f[p]].p.y,proj[f[p+1]].p.x,proj[f[p+1]].p.y,c)
+        else
+            print(tostring(proj[f[p]].p.x)..","..tostring(proj[f[p]].p.y).." > "..tostring(proj[f[1]].p.x)..","..tostring(proj[f[1]].p.y))
+            gfx.line(proj[f[p]].p.x,proj[f[p]].p.y,proj[f[1]].p.x,proj[f[1]].p.y,c)
+        end
+    end
+end
+
+while true do
+    sleep(5)
+end

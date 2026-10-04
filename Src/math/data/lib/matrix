@@ -1,0 +1,217 @@
+--:Minify:--
+local lib={}
+
+local function check(a,b,ignoreb)
+    if type(a)~="vector" then error("vector metatable is on non vector object") end
+    if not ignoreb and b~=nil then
+        if type(b)~="vector" then error("b must be vector") end
+        if #a~=#b then error("vectors must be same size") end
+    end
+end
+
+local vector={
+    add = function(a,b)
+        check(a,b)
+        local ret={}
+        for i=1, #a do
+            ret[i]=a[i]+b[i]
+        end
+        return lib.convert(ret)
+    end,
+
+    sub = function(a,b)
+        check(a,b)
+        if type(b)~="vector" then error("b must be vector") end
+        local ret={}
+        for i=1, #a do
+            ret[i]=a[i]-b[i]
+        end
+        return lib.convert(ret)
+    end,
+
+    unm = function(a)
+        local ret={}
+        for i=1, #a do
+            ret[i]=-a[i]
+        end
+        return lib.convert(ret)
+    end,
+
+    mul = function(a,b)
+        if type(a)=="number" and type(b)=="vector" then a,b=b,a end
+        check(a,b,true)
+        local ret={}
+        if type(b)=="vector" then
+            for i=1, #a do
+                ret[i]=a[i]*b[i]
+            end
+        elseif type(b)=="number" then
+            for i=1, #a do
+                ret[i]=a[i]*b
+            end
+        else
+            error("b must be vector or number")
+        end
+        return lib.convert(ret)
+    end,
+
+    div = function(a,b)
+        if type(a)=="number" and type(b)=="vector" then a,b=b,a end
+        check(a,b,true)
+        local ret={}
+        if type(b)=="vector" then
+            for i=1, #a do
+                ret[i]=a[i]/b[i]
+            end
+        elseif type(b)=="number" then
+            for i=1, #a do
+                ret[i]=a[i]/b
+            end
+        else
+            error("b must be vector or number")
+        end
+        return lib.convert(ret)
+    end,
+
+    dot = function(a,b)
+        check(a,b)
+        local out=a[1]*b[1]
+        for i=2, #a do
+            out=out+a[i]*b[i]
+        end
+        return out
+    end,
+
+    tostring = function(a)
+        check(a)
+        local out = "{"
+        for i=1, #a do
+            out=out..tostring(a[i])..", "
+        end
+        return out:sub(1,#out-2).."}"
+    end,
+
+    equals = function(a,b)
+        check(a,b)
+        for i=1, #a do
+            if a[i]~=b[i] then
+                return false
+            end
+        end
+        return true
+    end,
+
+    cross = function(a,b)
+        check(a,b)
+        if #a~=3 then error("Vectors must be of type 'vec3'") end
+        if #b~=3 then error("Vectors must be of type 'vec3'") end
+        return lib.convert({
+            a.y*b.z-a.z*b.y,
+            a.z*b.x-a.x*b.z,
+            a.x*b.y-a.y*b.x
+        })
+    end,
+
+    length = function(a)
+        check(a)
+        local out=a[1]*a[1]
+        for i=2, #a do
+            out=out+a[i]*a[i]
+        end
+        if type(out)=="vector" then
+            return out:sqrt()
+        else
+            return math.sqrt(out)
+        end
+    end,
+
+    len = function(a)
+        return a:length()
+    end,
+
+    normalize = function(a)
+        return a*(1/a:len())
+    end,
+
+    round = function(a, t)
+        check(a)
+        local ret={}
+        for i=1, #a do
+            ret[i]=math.floor((a[i]+t*0.5)/t)*t
+        end
+        return lib.convert(ret)
+    end,
+
+    exp = function(a, e)
+        check(a)
+        local ret={}
+        for i=1, #a do
+            ret[i]=a^e
+        end
+        return lib.convert(ret)
+    end,
+
+    sqrt = function(a)
+        check(a)
+        local ret={}
+        for i=1, #a do
+            if type(a[i])=="vector" then
+                ret[i]=a[i]:sqrt()
+            else
+                ret[i]=math.sqrt(a[i])
+            end
+        end
+        return lib.convert(ret)
+    end
+}
+
+local idxtable={
+    w=4,
+    x=1,
+    y=2,
+    z=3,
+}
+
+local function index(self, k)
+    if idxtable[k] then
+        return rawget(self,idxtable[k])
+    elseif vector[k] then
+        return vector[k]
+    else
+        return rawget(self,k)
+    end
+end
+
+local function newindex(self, k, v)
+    if idxtable[k] then
+        rawset(self, idxtable[k], v)
+    else
+        rawset(self, k, v)
+    end
+end
+
+local meta={
+    __name="vector",
+    __type="vector",
+    __usermeta=function() error("EACCES") end,
+    __index=index,
+    __newindex=newindex,
+    __unm=vector.unm,
+    __add=vector.add,
+    __sub=vector.sub,
+    __mul=vector.mul,
+    __div=vector.div,
+    __tostring=vector.tostring,
+    __eq=vector.equals
+}
+
+function lib.new(...)
+    local vars={...}
+    return setmetatable(vars,meta)
+end
+
+function lib.convert(vars)
+    return setmetatable(vars,meta)
+end
+
+return lib

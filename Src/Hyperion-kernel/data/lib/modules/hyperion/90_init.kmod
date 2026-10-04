@@ -14,7 +14,7 @@ local data   = kernel.vfs.read(handle, 1024 * 1024 * 4)
 if not handle then kernel.panic("Failed to read "..kernel.config.initPath) end
 kernel.vfs.close(handle)
 
-local initFunc, err = load(data, "@sysinit", "t", kernel._U)
+local initFunc, err = load(data, "@init", "t", kernel._U)
 if not initFunc then kernel.PANIC("Failed to load init system: " .. err) end
 
 kernel.tasks["1"] = {
@@ -28,7 +28,7 @@ kernel.tasks["1"] = {
         kernel.saveLog()
     end),
 
-    name   = "sysinit",
+    name   = "init",
     status = "R",
     pid    = 1,
     tgid   = 1,

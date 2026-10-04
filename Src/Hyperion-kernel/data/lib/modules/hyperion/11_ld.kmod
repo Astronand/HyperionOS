@@ -7,8 +7,12 @@ kernel.searchpaths = {
 }
 kernel.reqcache = cache
 
+local function wrap(lib)
+    return setmetatable({},{__index=lib,__newindex=function()error("Table is read-only")end,__usermeta=false,__call=function(s,...) return lib.new(...) end})
+end
+
 local function require(module, ...)
-    if cache[module] then return cache[module].ret end
+    if cache[module] then return wrap(cache[module].ret) end
     local args = {...}
     for _, path in ipairs(kernel.searchpaths) do
         local filepath = path:gsub("?", module)
@@ -36,8 +40,8 @@ local function require(module, ...)
             if not ok then
                 error("Error running module "..module..": "..tostring(ret))
             end
-            cache[module] = {ret = ret, expires = kernel.EFI:getEpochMs() + 120000}
-            return ret
+            cache[module] = {ret = ret}
+            return wrap(ret)
         end
         coroutine.yield()
     end
