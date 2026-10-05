@@ -1,0 +1,14 @@
+{
+    "id": "fonts",
+    "description": "package providing kernel support for framebuffers and graphics",
+    "authors": [
+        "Hyperion",
+        "Astronand"
+    ],
+    "dependencies": [
+        "vector"
+    ],
+    "version": "1.0.0",
+    "hash": "dea723966d4438be36d15ad085024ddf",
+    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/fonts.tar.gz"
+}

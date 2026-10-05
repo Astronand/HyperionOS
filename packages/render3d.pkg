@@ -1,0 +1,9 @@
+{
+    "id": "render3d",
+    "description": "No description provided",
+    "authors": [],
+    "dependencies": [],
+    "version": "0.0.0",
+    "hash": "8fcbaa029a137bc0c047a990b9bf3a92",
+    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/render3d.tar.gz"
+}

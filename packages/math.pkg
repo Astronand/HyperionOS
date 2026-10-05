@@ -1,0 +1,12 @@
+{
+    "id": "math",
+    "description": "General advanced math libs\nVectorX\nMatrix",
+    "authors": [
+        "Hyperion",
+        "Astronand"
+    ],
+    "dependencies": [],
+    "version": "1.0.0",
+    "hash": "aef55708381a481860c48d819d817911",
+    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/math.tar.gz"
+}
