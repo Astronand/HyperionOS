@@ -1,9 +1,0 @@
-{
-    "id": "Hyperion-firmware-lua",
-    "description": "No description provided",
-    "authors": [],
-    "dependencies": [],
-    "version": "0.0.0",
-    "hash": "c8fec163cdbcda36fe01d8bb9fd4e327",
-    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/Hyperion-firmware-lua.tar.gz"
-}

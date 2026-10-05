@@ -1,0 +1,12 @@
+{
+    "id": "Hyperion-addon-ccpc-gfx",
+    "description": "firmware for CraftOS PC",
+    "authors": [
+        "Hyperion",
+        "Astronand"
+    ],
+    "dependencies": [],
+    "version": "1.0.0",
+    "hash": "28835e332f3c81e9417aee029d89dc02",
+    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/Hyperion-addon-ccpc-gfx.tar.gz"
+}

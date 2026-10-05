@@ -1,0 +1,9 @@
+{
+    "id": "Hyperion-firmware-puc",
+    "description": "No description provided",
+    "authors": [],
+    "dependencies": [],
+    "version": "0.0.0",
+    "hash": "ee9eaca79973d87840c729bd4edf8633",
+    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/Hyperion-firmware-puc.tar.gz"
+}
