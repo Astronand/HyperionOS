@@ -8,6 +8,6 @@
     ],
     "dependencies": [],
     "version": "1.5.0",
-    "hash": "a72b269600fc4120ca93df599c519788",
+    "hash": "fda2d814a7c3cc1ec532175192101573",
     "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/Hyperion-kernel.tar.gz"
 }

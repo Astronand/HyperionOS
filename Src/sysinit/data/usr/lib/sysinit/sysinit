@@ -5,18 +5,6 @@ kernel.saveLog()
 local fs=require("fs")
 kernel.log("Loaded fs")
 
-for i,v in pairs(kernel.processes) do
-    kernel.log("Spawning kernel task "..i)
-    syscall.spawn(function()
-        local status, err = pcall(v)
-        if not status then
-            kernel.log("Error executing kernel task '" .. i .. "': " .. err, "ERROR", 0xFF0000)
-        else
-            kernel.log("Successfully executed kernel task: " .. i)
-        end
-    end, i, nil,nil,nil,true)
-end
-
 -- config file path setup
 if not fs.exists("/etc/sysinit/") then
     kernel.log("Creating conf path")

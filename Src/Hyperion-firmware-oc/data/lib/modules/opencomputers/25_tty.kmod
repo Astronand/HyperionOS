@@ -155,6 +155,9 @@ local function newtty(addr)
                 end,
                 gplt=function()
                     return plt
+                end,
+                gfx=function()
+                    return false
                 end
             }
             if mode=="rw" then

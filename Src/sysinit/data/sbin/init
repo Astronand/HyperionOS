@@ -1,4 +1,0 @@
-local args={...}
-syscall.remove("/sbin/init")
-syscall.symlink("/usr/lib/sysinit/sysinit", "/sbin/init")
-syscall.exec("/sbin/init", args)

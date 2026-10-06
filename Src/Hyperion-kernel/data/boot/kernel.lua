@@ -507,7 +507,7 @@ if kernel.status=="reboot" then
 elseif kernel.status=="halt" then
     kernel.log("System halted.")
     kernel.saveLog()
-    while true do end
+    while true do EFI:yield() end
 else
     EFI.status="shutdown"
     return true
