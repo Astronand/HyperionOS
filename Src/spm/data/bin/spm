@@ -97,6 +97,7 @@ local spm = function(...)
 
         i = i + 1
     end
+---@diagnostic disable-next-line: cast-local-type
     i=nil
 
     if cloptions.help or cloptions.h then
@@ -632,9 +633,11 @@ local spm = function(...)
             if pkgdb[i] then
                 if not cloptions.overwrite then
                     for f,h in pairs(v.data) do
-                        if pkgdb[i].files[f]~=md5(fs.readAllText(f)) then
-                            w(f.." was modified on disk, specify --overwrite to overwrite")
-                            block[f]=true
+                        if fs.exists(f) then
+                            if pkgdb[i].files[f]~=md5(fs.readAllText(f)) then
+                                w(f.." was modified on disk, specify --overwrite to overwrite")
+                                block[f]=true
+                            end
                         end
                     end
                 end
@@ -655,10 +658,12 @@ local spm = function(...)
             if pkgdb[i] then
                 for f,c in pairs(pkgdb[i].files) do
                     if not v.data[f] then
-                        if c~=md5(fs.readAllText(f)) then
-                            w(f.." was modified on disk, specify --overwrite to overwrite")
-                        else
-                            delete[f]=true
+                        if fs.exists(f) then
+                            if c~=md5(fs.readAllText(f)) then
+                                w(f.." was modified on disk, specify --overwrite to overwrite")
+                            else
+                                delete[f]=true
+                            end
                         end
                     end
                 end

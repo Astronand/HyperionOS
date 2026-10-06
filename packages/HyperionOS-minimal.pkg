@@ -1,0 +1,18 @@
+{
+    "id": "HyperionOS-minimal",
+    "description": "HyperionOS install package-group",
+    "authors": [
+        "Hyperion"
+    ],
+    "dependencies": [
+        "Hyperion-kernel",
+        "Hyperion-core",
+        "coreutils",
+        "hysh",
+        "lua",
+        "wget"
+    ],
+    "version": "1.2.4",
+    "hash": "ac1d8da249759cf5dd31cff3adf2adb8",
+    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/HyperionOS-minimal.tar.gz"
+}

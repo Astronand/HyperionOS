@@ -1,0 +1,12 @@
+--:Minify:--
+local kernel=...
+if kernel.arch~="cct" then
+    kernel.deny("cc-tweaked/01_periph.kmod")
+    kernel.deny("cc-tweaked/13_devraw.kmod")
+    kernel.deny("cc-tweaked/22_http.kmod")
+    kernel.deny("cc-tweaked/25_mouse.kmod")
+    kernel.deny("cc-tweaked/25_tty.kmod")
+    kernel.deny("cc-tweaked/30_daemon.kmod")
+    kernel.deny("cc-tweaked/46_scheduler.kmod")
+    kernel.deny("cc-tweaked/51_gpio.kmod")
+end

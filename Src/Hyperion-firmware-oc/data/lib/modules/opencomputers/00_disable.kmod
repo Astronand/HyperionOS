@@ -1,0 +1,11 @@
+--:Minify:--
+local kernel=...
+if kernel.arch~="oc" then
+    kernel.deny("opencomputers/01_devices.kmod")
+    kernel.deny("opencomputers/13_devraw.kmod")
+    kernel.deny("opencomputers/22_http.kmod")
+    kernel.deny("opencomputers/25_tty.kmod")
+    kernel.deny("opencomputers/26_keyboards.kmod")
+    kernel.deny("opencomputers/30_daemon.kmod")
+    kernel.deny("opencomputers/36_scheduler.kmod")
+end

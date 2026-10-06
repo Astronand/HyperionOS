@@ -1,0 +1,6 @@
+Hyperion-kernel
+Hyperion-core
+coreutils
+hysh
+lua
+wget

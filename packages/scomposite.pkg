@@ -1,9 +1,0 @@
-{
-    "id": "scomposite",
-    "description": "No description provided",
-    "authors": [],
-    "dependencies": [],
-    "version": "0.0.0",
-    "hash": "bfa4821544c70be1b582b3eceda4a141",
-    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/scomposite.tar.gz"
-}

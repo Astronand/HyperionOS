@@ -103,7 +103,7 @@ local function newtaskproxy(task)
         children[tostring(v.pid)]="/proc/"..tostring(v.pid)
     end
     return {
-        [".meta"]=strFile(buildMeta({cwd=task.cwd,parent="/proc/"..tostring(task.parent.pid)})),
+        [".meta"]=strFile(buildMeta({cwd=task.cwd,parent="/proc/"..tostring(task.parent.pid),root=task.root or "/"})),
         uid=strFile(task.uid),
         comm=strFile(task.name),
         fd={
@@ -115,7 +115,9 @@ local function newtaskproxy(task)
         children={
             [".meta"]=strFile(buildMeta(children))
         },
-        pid=strFile(task.pid)
+        pid=strFile(task.pid),
+        ivs=strFile(task.ivs),
+        vs=strFile(task.vs)
     }
 end
 
