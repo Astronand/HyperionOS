@@ -1,0 +1,10 @@
+Hyperion-kernel
+Hyperion-core
+coreutils
+spm
+sysinit
+hysh
+lua
+micro
+Hypersplash
+math

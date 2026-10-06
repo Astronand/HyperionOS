@@ -18,7 +18,13 @@ local function createDisk(id, hw)
         if not hw.exists(path) or not hw.isDirectory(path) then
             return nil, "not directory"
         end
-        return hw.list(path)
+        local ret={}
+        for i,v in ipairs(hw.list(path)) do
+            if v:sub(-1)=="/" then
+                ret[i]=v:sub(1,#v-1)
+            else ret[i]=v end
+        end
+        return ret
     end
 
     function disk:fileExists(path)

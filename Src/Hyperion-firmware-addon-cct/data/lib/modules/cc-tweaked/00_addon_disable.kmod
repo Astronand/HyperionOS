@@ -1,0 +1,5 @@
+--:Minify:--
+local kernel=...
+if kernel.arch~="cct" then
+    kernel.deny("cc-tweaked/31_keyboards.kmod")
+end

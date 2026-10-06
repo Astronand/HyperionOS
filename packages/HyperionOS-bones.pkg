@@ -1,0 +1,14 @@
+{
+    "id": "HyperionOS-bones",
+    "description": "HyperionOS install package-group",
+    "authors": [
+        "Hyperion"
+    ],
+    "dependencies": [
+        "Hyperion-kernel",
+        "Hyperion-core"
+    ],
+    "version": "1.2.4",
+    "hash": "aa030c94b32efce1387af837bd5e72c5",
+    "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/HyperionOS-bones.tar.gz"
+}

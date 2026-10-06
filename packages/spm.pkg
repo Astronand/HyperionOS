@@ -14,6 +14,6 @@
         "Hyperion-core"
     ],
     "version": "1.0.0",
-    "hash": "996e0fed6b0cb4ae5fb578ba3cfb0680",
+    "hash": "bc76091060b9c3190a6ecd508b213f53",
     "tarball": "https://git.astronand.dev/Hyperion/HyperionOS/raw/branch/main/packages/raw/spm.tar.gz"
 }
