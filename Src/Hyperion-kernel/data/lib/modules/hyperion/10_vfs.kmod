@@ -694,7 +694,7 @@ function vfs.open(path, mode)
     if disk:type(diskPath) ~= "directory" then
         handle = disk:open(diskPath, mode)
         if type(handle, true) ~= "table" then
-            error("ENFILE")
+            error("ENFILE".." KERR="..type(handle,true))
         end
     end
 

@@ -19,6 +19,17 @@ if not initFunc then kernel.PANIC("Failed to load init system: " .. err) end
 
 kernel.tasks["1"] = {
     coro = coroutine.create(function()
+        for i,v in pairs(kernel.processes) do
+            kernel.log("Spawning kernel task "..i)
+            syscall.spawn(function()
+                local status, err = pcall(v)
+                if not status then
+                    kernel.log("Error executing kernel task '" .. i .. "': " .. err, "ERROR", 0xFF0000)
+                else
+                    kernel.log("Successfully executed kernel task: " .. i)
+                end
+            end, i, nil,nil,nil,true)
+        end
         local ok, err = xpcall(initFunc, debug.traceback, kernel)
         if not ok then
             kernel.panic("Init system crashed: " .. tostring(err))
